@@ -5,16 +5,14 @@ using UnityEngine.SceneManagement;
 
 public class MainManu : MonoBehaviour
 {
-    IEnumerator Test()
-    {
-        yield return new WaitForSeconds(3);
-    }
+    
+    
     public void PlayGame()
     {
-        
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-        StartCoroutine(Test());
     }
+
+   
     public void PlayGameAferGameOver()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
@@ -22,7 +20,7 @@ public class MainManu : MonoBehaviour
     }
     public void GoTOMainManu()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 2);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 3);
 
     }
 

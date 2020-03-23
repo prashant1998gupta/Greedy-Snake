@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 
 namespace SA
@@ -16,7 +17,7 @@ namespace SA
         public Color color1;
         public Color color2;
         public Color appColor = Color.red;
-        public Color appColor1 = Color.blue;
+        //public Color appColor1 = Color.blue;
         public Color playerColor = Color.black;
 
         public Transform cameraHolder;
@@ -26,7 +27,7 @@ namespace SA
         GameObject tailParent;
         Node playerNode;
         Node appNode;
-        Node appNode1;
+        //Node appNode1;
 
         Sprite playerSprite;
 
@@ -38,9 +39,21 @@ namespace SA
         List<Node> avaiableNode = new List<Node>();
         List<SpacialNode> tail = new List<SpacialNode>();
 
+         int currentScore;
+        
+
+        public TMPro.TextMeshProUGUI currentScoreText;
+        public TMPro.TextMeshProUGUI highScoreText;
+
 
         bool up, down, left, right;
-        public float moveRate = .5f;
+        bool swipeUp, swipeDown, swippeLeft, swipeRight;
+
+        public bool isGameOver;
+        
+
+
+        public float moveRate = 10f;
         float timer;
 
         Direction targetDirection;
@@ -50,20 +63,31 @@ namespace SA
             up, down, left, right
         }
 
-        IEnumerator Test()
-        {
-            yield return new WaitForSeconds(3);
-            Debug.Log("Wait for 3 secand");
+        
 
-        }
 
-       
-       public UnityEvent game_Over;
+        public UnityEvent game_Over;
+        public UnityEvent onScore;
+
+
+        public float maxTime;
+        public float minSwipeDis;
+
+        float startTime;
+        float endTime;
+
+        Vector3 startPos;
+        Vector3 endPos;
+
+        float swipeTime;
+        float swipeDistance;
+
+
+
 
         #region init
         public void Start()
         {
-            StartCoroutine(Test());
             ClearReferances();
             CreatMap();
             PlacePlayer();
@@ -71,7 +95,23 @@ namespace SA
             CreatApple();
            // CreatApple1();
             targetDirection = Direction.right;
-           
+            game_Over.AddListener(GameOver);
+            currentScore = 0;
+            updateScore();
+        }
+
+        IEnumerator GameOverProcess()
+        {
+            yield return new WaitForSeconds(3);
+            Debug.Log("Wait for 3 secand");
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+
+        }
+
+
+        void GameOver()
+        {
+            StartCoroutine("GameOverProcess");
         }
 
         public void ClearReferances()  
@@ -81,7 +121,11 @@ namespace SA
 
             if (playerObject != null)
                 Destroy(playerObject);
-            foreach( var t in tail)
+
+            if (appleObject != null)
+                Destroy(appleObject);
+
+            foreach ( var t in tail)
             {
                 if (t.obj != null)
                     Destroy(t.obj);
@@ -89,6 +133,7 @@ namespace SA
             }
             tail.Clear();
             avaiableNode.Clear();
+            
             grid = null;
 
         }
@@ -174,7 +219,6 @@ namespace SA
             playerRenderer.sortingOrder = 1;
             playerNode = GetNode(3, 3);
             // playerNode = GetNode(2, 3);
-            //CreatTailNode(2, 3);
             placePlayerObject(playerObject, playerNode.worldPosition);
 
 
@@ -219,26 +263,103 @@ namespace SA
 
         private void Update()
         {
+
+            if (isGameOver == true)
+                return;
+
             GetInput();
+            SwipeInput(); 
+            
             SetPlayeDirection();
 
             timer += Time.deltaTime;
 
             if (timer > moveRate)
             {
-                timer = 0;
+                 timer = 0;
                 curDirection = targetDirection;
                 MovePlayer();
             }
 
         }
 
+        void SwipeInput()
+        {
+            if(Input.touchCount > 0)
+            {
+                Touch touch = Input.GetTouch(0);
+
+                if(touch.phase == TouchPhase.Began)
+                {
+                    startTime = Time.time;
+                    startPos = touch.position;
+                }
+                else if(touch.phase ==TouchPhase.Ended)
+                {
+                    endTime = Time.time;
+                    endPos = touch.position;
+
+                    swipeTime = endTime - startTime;
+                    swipeDistance = (endPos - startPos).magnitude;
+
+                    if (swipeTime < maxTime && swipeDistance > minSwipeDis)
+                    {
+                        Swipe();
+                    }
+                }
+            }
+        }
+
+        void Swipe()
+        {
+            Vector2 distance = endPos - startPos;
+            if(Mathf.Abs(distance.x) > Mathf.Abs(distance.y))
+            {
+                //Debug.Log("Horizantal Swipe");
+
+                if (distance.x > 0)
+                {
+                    Debug.Log("Right Swipe");
+                    swipeRight = true;
+                }
+                    
+                    
+                     
+                if (distance.x < 0)
+                {
+                    Debug.Log("Left Swipe");
+                    swippeLeft = true;
+                }
+                    
+
+            }
+            else if(Mathf.Abs(distance.x) < Mathf.Abs(distance.y))
+            {
+               // Debug.Log("Vertical Swipe");
+
+                if (distance.y > 0)
+                {
+                    Debug.Log("Up Swipe");
+                    swipeUp = true;
+                }
+
+                if (distance.y < 0)
+                {
+                    Debug.Log("Down Swipe");
+                    swipeDown = true;
+                }
+                   
+
+            }
+        }
+
         void GetInput()
         {
-            up = Input.GetButtonDown("Up");
-            down = Input.GetButtonDown("Down");
-            left = Input.GetButtonDown("Left");
-            right = Input.GetButtonDown("Right");
+            up = Input.GetButtonDown("Up") || swipeUp ;
+            down = Input.GetButtonDown("Down") || swipeDown;
+            left = Input.GetButtonDown("Left") || swippeLeft ;
+            right = Input.GetButtonDown("Right") || swipeRight ;
+            swipeUp = false; swipeDown = false; swippeLeft = false; swipeRight = false ;
         }
         void SetPlayeDirection()
         {
@@ -304,10 +425,9 @@ namespace SA
             if (targetNode == null)
             {
                 game_Over.Invoke();
-                StartCoroutine(Test());
-                
+                isGameOver = true;
+
                 // game over 
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
 
             }
             else
@@ -315,16 +435,16 @@ namespace SA
                 if (isTailNode(targetNode))
                 {
                     game_Over.Invoke();
+                    isGameOver = true;
                     // Game over
-                    StartCoroutine(Test());
-                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+
                 }
 
                 else
                 {
                     bool isScore = false;
 
-                    if ((targetNode == appNode) || (targetNode == appNode1))
+                    if ( targetNode == appNode ) 
                     {
                         isScore = true;
 
@@ -350,6 +470,14 @@ namespace SA
 
                     if (isScore)
                     {
+                        currentScore = currentScore + 10;
+                        if(currentScore > PlayerPrefs.GetInt("highScoreText"))
+                        {
+                            PlayerPrefs.SetInt("highScoreText", currentScore);
+                        }
+
+                        onScore.Invoke();
+
                         if (avaiableNode.Count > 0 )
                         {
                             RendomlyPlaceApple();
@@ -399,6 +527,15 @@ namespace SA
 
 
         #region uitilits
+
+
+
+        public void updateScore()
+        {
+            currentScoreText.text = currentScore.ToString();
+            highScoreText.text = PlayerPrefs.GetInt("highScoreText", 0).ToString();
+        }
+
 
         bool isOpposit(Direction d)
         {
