@@ -112,6 +112,7 @@ namespace SA
         void GameOver()
         {
             StartCoroutine("GameOverProcess");
+            PlayerPrefs.SetInt("CurrentScore" , currentScore);
         }
 
         public void ClearReferances()  
@@ -426,7 +427,7 @@ namespace SA
             {
                 game_Over.Invoke();
                 isGameOver = true;
-
+                
                 // game over 
 
             }
