@@ -20,4 +20,6 @@ score is increased by 10 point afer eating ever fruits
 
 its have pause and resume Buttons 
 
+Git lab remote added.
+
 
