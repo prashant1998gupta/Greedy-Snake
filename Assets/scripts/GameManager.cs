@@ -39,8 +39,8 @@ namespace SA
         List<Node> avaiableNode = new List<Node>();
         List<SpacialNode> tail = new List<SpacialNode>();
 
-         int currentScore;
-        
+        int currentScore;
+
 
         public TMPro.TextMeshProUGUI currentScoreText;
         public TMPro.TextMeshProUGUI highScoreText;
@@ -50,7 +50,7 @@ namespace SA
         bool swipeUp, swipeDown, swippeLeft, swipeRight;
 
         public bool isGameOver;
-        
+
 
 
         public float moveRate = 10f;
@@ -63,7 +63,7 @@ namespace SA
             up, down, left, right
         }
 
-        
+
 
 
         public UnityEvent game_Over;
@@ -93,7 +93,7 @@ namespace SA
             PlacePlayer();
             PlaceCamera();
             CreatApple();
-           // CreatApple1();
+            // CreatApple1();
             targetDirection = Direction.right;
             game_Over.AddListener(GameOver);
             currentScore = 0;
@@ -111,14 +111,15 @@ namespace SA
 
         void GameOver()
         {
+            FindObjectOfType<AudioManager>().Play(SoundType.GAMEOVER);
             StartCoroutine("GameOverProcess");
-            PlayerPrefs.SetInt("CurrentScore" , currentScore);
+            PlayerPrefs.SetInt("CurrentScore", currentScore);
         }
 
-        public void ClearReferances()  
+        public void ClearReferances()
         {
             if (mapObject != null)
-            Destroy(mapObject);
+                Destroy(mapObject);
 
             if (playerObject != null)
                 Destroy(playerObject);
@@ -126,7 +127,7 @@ namespace SA
             if (appleObject != null)
                 Destroy(appleObject);
 
-            foreach ( var t in tail)
+            foreach (var t in tail)
             {
                 if (t.obj != null)
                     Destroy(t.obj);
@@ -134,7 +135,7 @@ namespace SA
             }
             tail.Clear();
             avaiableNode.Clear();
-            
+
             grid = null;
 
         }
@@ -269,15 +270,15 @@ namespace SA
                 return;
 
             GetInput();
-            SwipeInput(); 
-            
+            SwipeInput();
+
             SetPlayeDirection();
 
             timer += Time.deltaTime;
 
             if (timer > moveRate)
             {
-                 timer = 0;
+                timer = 0;
                 curDirection = targetDirection;
                 MovePlayer();
             }
@@ -286,16 +287,16 @@ namespace SA
 
         void SwipeInput()
         {
-            if(Input.touchCount > 0)
+            if (Input.touchCount > 0)
             {
                 Touch touch = Input.GetTouch(0);
 
-                if(touch.phase == TouchPhase.Began)
+                if (touch.phase == TouchPhase.Began)
                 {
                     startTime = Time.time;
                     startPos = touch.position;
                 }
-                else if(touch.phase ==TouchPhase.Ended)
+                else if (touch.phase == TouchPhase.Ended)
                 {
                     endTime = Time.time;
                     endPos = touch.position;
@@ -314,7 +315,7 @@ namespace SA
         void Swipe()
         {
             Vector2 distance = endPos - startPos;
-            if(Mathf.Abs(distance.x) > Mathf.Abs(distance.y))
+            if (Mathf.Abs(distance.x) > Mathf.Abs(distance.y))
             {
                 //Debug.Log("Horizantal Swipe");
 
@@ -323,20 +324,20 @@ namespace SA
                     Debug.Log("Right Swipe");
                     swipeRight = true;
                 }
-                    
-                    
-                     
+
+
+
                 if (distance.x < 0)
                 {
                     Debug.Log("Left Swipe");
                     swippeLeft = true;
                 }
-                    
+
 
             }
-            else if(Mathf.Abs(distance.x) < Mathf.Abs(distance.y))
+            else if (Mathf.Abs(distance.x) < Mathf.Abs(distance.y))
             {
-               // Debug.Log("Vertical Swipe");
+                // Debug.Log("Vertical Swipe");
 
                 if (distance.y > 0)
                 {
@@ -349,18 +350,18 @@ namespace SA
                     Debug.Log("Down Swipe");
                     swipeDown = true;
                 }
-                   
+
 
             }
         }
 
         void GetInput()
         {
-            up = Input.GetButtonDown("Up") || swipeUp ;
+            up = Input.GetButtonDown("Up") || swipeUp;
             down = Input.GetButtonDown("Down") || swipeDown;
-            left = Input.GetButtonDown("Left") || swippeLeft ;
-            right = Input.GetButtonDown("Right") || swipeRight ;
-            swipeUp = false; swipeDown = false; swippeLeft = false; swipeRight = false ;
+            left = Input.GetButtonDown("Left") || swippeLeft;
+            right = Input.GetButtonDown("Right") || swipeRight;
+            swipeUp = false; swipeDown = false; swippeLeft = false; swipeRight = false;
         }
         void SetPlayeDirection()
         {
@@ -393,13 +394,14 @@ namespace SA
             if (!isOpposit(d))
             {
                 targetDirection = d;
+                FindObjectOfType<AudioManager>().Play(SoundType.SWIPESOUND);
 
             }
         }
         void MovePlayer()
         {
 
-            
+
             int x = 0;
             int y = 0;
 
@@ -427,7 +429,7 @@ namespace SA
             {
                 game_Over.Invoke();
                 isGameOver = true;
-                
+
                 // game over 
 
             }
@@ -445,10 +447,11 @@ namespace SA
                 {
                     bool isScore = false;
 
-                    if ( targetNode == appNode ) 
+                    if (targetNode == appNode)
                     {
+                        Debug.Log(FindObjectOfType<AudioManager>());
+                        FindObjectOfType<AudioManager>().Play(SoundType.PLAYEREAT);
                         isScore = true;
-
                     }
 
                     Node privousNode = playerNode;
@@ -472,20 +475,20 @@ namespace SA
                     if (isScore)
                     {
                         currentScore = currentScore + 10;
-                        if(currentScore > PlayerPrefs.GetInt("highScoreText"))
+                        if (currentScore > PlayerPrefs.GetInt("highScoreText"))
                         {
                             PlayerPrefs.SetInt("highScoreText", currentScore);
                         }
 
                         onScore.Invoke();
 
-                        if (avaiableNode.Count > 0 )
+                        if (avaiableNode.Count > 0)
                         {
                             RendomlyPlaceApple();
-                           // RendomlyPlaceApple1();
+                            // RendomlyPlaceApple1();
 
                         }
-                       
+
                         else
                         {
                             // you win
@@ -544,25 +547,25 @@ namespace SA
             {
                 default:
                 case Direction.up:
-                    if (curDirection == Direction.down)
+                    if (curDirection == Direction.down || curDirection == Direction.up)
                         return true;
                     else
                         return false;
 
                 case Direction.down:
-                    if (curDirection == Direction.up)
+                    if (curDirection == Direction.up || curDirection == Direction.down)
                         return true;
                     else
                         return false;
 
                 case Direction.right:
-                    if (curDirection == Direction.left)
+                    if (curDirection == Direction.left || curDirection == Direction.right)
                         return true;
                     else
                         return false;
 
                 case Direction.left:
-                    if (curDirection == Direction.right)
+                    if (curDirection == Direction.right || curDirection == Direction.left)
                         return true;
                     else
                         return false;
@@ -589,32 +592,32 @@ namespace SA
         }
 
 
-        
+
         void RendomlyPlaceApple()
         {
             int ran = Random.Range(0, avaiableNode.Count);
             Node n = avaiableNode[ran];
             placePlayerObject(appleObject, n.worldPosition);
-           
+
             appNode = n;
         }
-       /* void RendomlyPlaceApple1()
-        {
-            int ran1 = Random.Range(0, avaiableNode.Count);
-            Node n1 = avaiableNode[ran1];
-            placePlayerObject(appleObject1, n1.worldPosition);
+        /* void RendomlyPlaceApple1()
+         {
+             int ran1 = Random.Range(0, avaiableNode.Count);
+             Node n1 = avaiableNode[ran1];
+             placePlayerObject(appleObject1, n1.worldPosition);
 
-            appNode1 = n1;
-        }*/
+             appNode1 = n1;
+         }*/
 
-        Node GetNode(int x , int y)
+        Node GetNode(int x, int y)
         {
             if (x < 0 || x > maxwidht - 1 || y < 0 || y > maxHeight - 1)
                 return null;
             return grid[x, y];
         }
 
-        SpacialNode CreatTailNode(int x , int y)
+        SpacialNode CreatTailNode(int x, int y)
         {
             SpacialNode s = new SpacialNode();
             s.node = GetNode(x, y);
@@ -626,18 +629,18 @@ namespace SA
             r.sprite = playerSprite;
             r.sortingOrder = 1;
 
-            return s; 
+            return s;
         }
         Sprite CreateSprite(Color targetColor)
         {
-            Texture2D txt = new Texture2D(1,1);
+            Texture2D txt = new Texture2D(1, 1);
             txt.SetPixel(0, 0, targetColor);
             txt.Apply();
             txt.filterMode = FilterMode.Point;
             Rect rect = new Rect(0, 0, 1, 1);
             return Sprite.Create(txt, rect, Vector2.one * .5f, 1f, 0, SpriteMeshType.FullRect);
         }
-       
+
 
         #endregion
     }
