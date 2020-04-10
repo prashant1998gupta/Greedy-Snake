@@ -13,7 +13,7 @@ public class AudioManager : MonoBehaviour
     {
         if (instance == null)
         {
-            instance = this;
+            instance = gameObject.GetComponent<AudioManager>();
         }
         else
         {
@@ -40,6 +40,8 @@ public class AudioManager : MonoBehaviour
     {
         Play(SoundType.BACKGROUNDMUSIC);
     }
+
+   
 
     /*public void Play(string name)
     {
@@ -82,4 +84,5 @@ public enum SoundType
     SWIPESOUND,
     PLAYEREAT,
     GAMEOVER,
+    BUTTONCLICK,
 }

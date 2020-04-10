@@ -13,6 +13,7 @@ public class PausedManu : MonoBehaviour
 
     public void Pause()
     {
+        AudioManager.instance.Play(SoundType.BUTTONCLICK);
         if (gameManager.isGameOver)
             return;
         Pause_manu.SetActive(true);
@@ -22,6 +23,7 @@ public class PausedManu : MonoBehaviour
 
     public void Resume()
     {
+        AudioManager.instance.Play(SoundType.BUTTONCLICK);
         Pause_manu.SetActive(false);
         PauseButton.SetActive(true);
         Time.timeScale = 1;
